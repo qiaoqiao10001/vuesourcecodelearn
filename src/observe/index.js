@@ -30,7 +30,6 @@ function defineReactive(data,key,value){
       return value;
     },
     set(newValue){
-      console.log('更新数据')
       if(newValue === value) return;
       // 如果用户设置的值是一个对象，我也要进行劫持，给他设置响应
       observe(value)

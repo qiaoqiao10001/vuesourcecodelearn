@@ -15,11 +15,9 @@ export function initMixins(options){
   }
 }
 Vue.prototype.$mount = function(el){
-  console.log(el)
   const vm = this;
   const options = vm.$options;
   el = document.querySelector(el);
-  console.log(el)
   // 如果用户没有传递render方法，就去使用template里面的东西
   if(!options.render){
     let template = options.template
