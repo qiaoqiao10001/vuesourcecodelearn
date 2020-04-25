@@ -22,6 +22,7 @@ class Observe{
 }
 
 function defineReactive(data,key,value){
+  observe(value)
   Object.defineProperty(data,key,{
     configurable: true,
     enumerable: false,
@@ -30,6 +31,8 @@ function defineReactive(data,key,value){
       return value;
     },
     set(newValue){
+      console.log(newValue)
+      console.log(value)
       if(newValue === value) return;
       // 如果用户设置的值是一个对象，我也要进行劫持，给他设置响应
       observe(value)

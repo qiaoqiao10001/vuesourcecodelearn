@@ -13,16 +13,19 @@
     <h2 style="color:red;fontSize:16px">compile函数</h2>
     <p>{{name}}</p>
     <span>{{age}}</span>
+    <p>{{school.name}}</p>
   </div>
   <script>
     let vm = new Vue({
       el: '#app',
       data() {
-        return { name: 'zf', age: 11 }
+        return {
+          name: 'zf', age: 11,
+          school: { name: 'zr' }
+
+        }
       }
     })
-    // vm.name => vm._data.name 
-
 
   </script>
 </body>

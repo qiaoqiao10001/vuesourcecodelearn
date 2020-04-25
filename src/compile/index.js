@@ -8,12 +8,12 @@ export function compileToFunction(template){
 
   // 1 将模板生成ast语法树
   let root = parseHTML(template); 
-  // console.log(root)
+  console.log(root)
   // 将ast语法树生成render 函数() 核心思路就是将模板转化成 下面这段字符串
   //  <div id="app"><p>hello {{name}}</p> hello</div>
   // 2 将ast树 再次转化成js的语法
   let code = generate(root)
-  // console.log(code)
+  console.log(code)
   // 这一步生成的code
   /*
   _c("div", {id:"app},_c("h2", {style:{"color":"red","fontSize":"16px"},_v("compile函数"))
@@ -24,5 +24,6 @@ export function compileToFunction(template){
   // 3 生成render函数
   // let renderFn = new Function(`with(this){return ${code}}`);
   let renderFn = new Function(`with(this){ return ${code}}`);
+  console.log(renderFn)
   return renderFn;
 }

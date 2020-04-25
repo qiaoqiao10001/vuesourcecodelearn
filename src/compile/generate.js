@@ -35,6 +35,7 @@ function gen (node) {
   }
 }
 
+
 function genprops (attrs) {
   // 处理属性
   let str = '';

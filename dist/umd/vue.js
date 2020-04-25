@@ -42,6 +42,55 @@
     return Constructor;
   }
 
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
+
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object);
+
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      if (enumerableOnly) symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+      keys.push.apply(keys, symbols);
+    }
+
+    return keys;
+  }
+
+  function _objectSpread2(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i] != null ? arguments[i] : {};
+
+      if (i % 2) {
+        ownKeys(Object(source), true).forEach(function (key) {
+          _defineProperty(target, key, source[key]);
+        });
+      } else if (Object.getOwnPropertyDescriptors) {
+        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      } else {
+        ownKeys(Object(source)).forEach(function (key) {
+          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        });
+      }
+    }
+
+    return target;
+  }
+
   function _slicedToArray(arr, i) {
     return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
   }
@@ -111,6 +160,57 @@
   function isObject(data) {
     return _typeof(data) === 'object' && data !== null;
   }
+  var LIFECYCLE_HOOKS = ['beforeCreate', 'created', 'mounted', 'beforeMount', 'updated', 'beforeUpdated', 'destroyed', 'beforeDestroy'];
+  var strats = {}; // 生命周期需要合并成一个数组
+
+  LIFECYCLE_HOOKS.forEach(function (hook) {
+    strats[hook] = mergeHook;
+  });
+
+  function mergeHook(parentVal, childVal) {
+    if (childVal) {
+      if (parentVal) {
+        return parentVal.concat(childVal);
+      } else {
+        return [childVal];
+      }
+    } else {
+      return parentVal;
+    }
+  }
+
+  function mergeOptions(parent, child) {
+    var options = {};
+
+    for (var key in parent) {
+      mergeField(key);
+    }
+
+    for (var _key in child) {
+      // 已经合并过就不需要多次合并了
+      if (!parent.hasOwnProperty(_key)) {
+        mergeField(_key);
+      }
+    } // 默认的合并策略 : 生命周期， data等的合并
+
+
+    function mergeField(key) {
+      // 同时是对象，就需要合并
+      if (strats[key]) {
+        return options[key] = strats[key](parent[key], child[key]);
+      }
+
+      if (_typeof(parent[key]) === 'object' && _typeof(child[key]) === 'object') {
+        options[key] = _objectSpread2({}, parent[key], {}, child[key]);
+      } else if (child[key] === null) {
+        options[key] = parent[key];
+      } else {
+        options[key] = child[key];
+      }
+    }
+
+    return options;
+  }
 
   var Observe = /*#__PURE__*/function () {
     function Observe(value) {
@@ -143,6 +243,7 @@
   }();
 
   function defineReactive(data, key, value) {
+    observe(value);
     Object.defineProperty(data, key, {
       configurable: true,
       enumerable: false,
@@ -151,6 +252,8 @@
         return value;
       },
       set: function set(newValue) {
+        console.log(newValue);
+        console.log(value);
         if (newValue === value) return; // 如果用户设置的值是一个对象，我也要进行劫持，给他设置响应
 
         observe(value);
@@ -435,13 +538,13 @@
     // ast语法树和虚拟dom 为什么要转render呢：
     // 为了解析其他指令来 ，ast语法树不能生成事件等， 需要转虚拟dom来解析指令
     // 1 将模板生成ast语法树
-    var root = parseHTML(template); // console.log(root)
-    // 将ast语法树生成render 函数() 核心思路就是将模板转化成 下面这段字符串
+    var root = parseHTML(template);
+    console.log(root); // 将ast语法树生成render 函数() 核心思路就是将模板转化成 下面这段字符串
     //  <div id="app"><p>hello {{name}}</p> hello</div>
     // 2 将ast树 再次转化成js的语法
 
-    var code = generate(root); // console.log(code)
-    // 这一步生成的code
+    var code = generate(root);
+    console.log(code); // 这一步生成的code
 
     /*
     _c("div", {id:"app},_c("h2", {style:{"color":"red","fontSize":"16px"},_v("compile函数"))
@@ -453,6 +556,7 @@
     // let renderFn = new Function(`with(this){return ${code}}`);
 
     var renderFn = new Function("with(this){ return ".concat(code, "}"));
+    console.log(renderFn);
     return renderFn;
   }
 
@@ -648,6 +752,16 @@
     };
   }
 
+  // mixin 合并所有选项
+  function initGlobalApi(Vue) {
+    Vue.options = {};
+
+    Vue.mixin = function (mixin) {
+      // 实现2个对象的合并
+      this.options = mergeOptions(this.options, mixin);
+    };
+  }
+
   function Vue(options) {
     this._init(options);
   }
@@ -655,6 +769,7 @@
   initMixins();
   renderMixin(Vue);
   lifecycleMixin(Vue);
+  initGlobalApi(Vue);
 
   return Vue;
 
