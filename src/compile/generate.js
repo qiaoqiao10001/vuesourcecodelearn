@@ -31,23 +31,36 @@ function gen (node) {
     if (lastIndex < text.length) {
       tokens.push(JSON.stringify(text.slice(lastIndex)))
     }
-    console.log(`_v(${tokens.join('+')})`)
     return `_v(${tokens.join('+')})`;
   }
 }
 
 function genprops (attrs) {
-  // 
+  // 处理属性
+  let str = '';
+  for (let i = 0; i < attrs.length; i++) {
+    let attr = attrs[i];
+    if (attr.name === 'style') {
+      let obj = {}
+      attr.value.split(';').forEach(item => {
+        let [key, value] = item.split(':');
+        obj[key] = value;
+      })
+      attr.value = obj;
+    }
+    str += `${attr.name}:${JSON.stringify(attr.value)},`;
+  }
+  return `{${str.slice(0, -1)}}`;
 }
 
 export function generate (el) {
   let children = genChildren(el)
-  let code = `_c"${el.tag}", ${
-    el.attrs.length ? genprops(el.attrs) : 'undefined'
+  let code = `_c('${el.tag}',${
+    el.attrs.length ? `${genprops(el.attrs)} ` : 'undefined'
     }${
     children ? `,${children}` : ''
-    }
-  `
-  console.log(code)
+    })
+  `;
+  // console.log(code)
   return code;
 }

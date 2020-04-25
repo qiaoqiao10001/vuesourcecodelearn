@@ -1,6 +1,7 @@
 import Vue from './index'
 import {initState} from './state'
 import {compileToFunction} from './compile/index'
+import {mountComponent} from './lifeCycle'
 export function initMixins(options){
   // 初始化Vue
   Vue.prototype._init = function(options){
@@ -28,4 +29,6 @@ Vue.prototype.$mount = function(el){
     const render = compileToFunction(template);
     options.render = render
   }
+  // 渲染当前组件，挂载组件
+  mountComponent(vm,el)
 }
